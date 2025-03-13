@@ -1,0 +1,71 @@
+/* ---------- Header Section ---------- */
+header {
+  background: rgba(255, 255, 255, 0.95); /* Légèrement transparent pour s’intégrer avec l’image */
+  padding: 15px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
+}
+
+
+/* ---------- Navigation ---------- */
+nav {
+  flex-grow: 1;
+  text-align: center;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+  color: #0f766e;
+}
+
+/* ---------- Social Media Icons ---------- */
+.header-right {
+  display: flex;
+  gap: 15px;
+}
+
+.header-right i {
+  font-size: 18px;
+  color: #0f766e;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.header-right i:hover {
+  color: #0a5a52;
+}
+
+/* ---------- Responsive Design ---------- */
+@media screen and (max-width: 768px) {
+  header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .header-left {
+    margin-bottom: 10px;
+  }
+
+  nav ul {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
