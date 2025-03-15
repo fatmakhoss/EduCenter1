@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { BookOpen, Users, Calendar, Bell, FileText, Settings, LogOut } from 'lucide-react';
+import { BookOpen, Users, Calendar, Bell, FileText, Settings, LogOut, UserPlus } from 'lucide-react';
 import AdminDashboard from './components/Dashboard/AdminDashboard.jsx';
 import TeacherDashboard from './components/Dashboard/TeacherDashboard.jsx';
 import StudentDashboard from './components/Dashboard/StudentDashboard.jsx';
+import RegistrationsPage from './components/Dashboard/RegistrationsPage.jsx';
 import Login from './components/Dashboard/Login';
 import Sessions from './components/Dashboard/Sessions.tsx';
 import Resources from './components/Dashboard/Resources.tsx';
@@ -39,6 +40,14 @@ function App({ userType, setUserType }) {
         </div>
         <nav className="mt-8">
           <SidebarLink icon={<Users />} text="Dashboard" active={activeView === 'dashboard'} onClick={() => handleSidebarClick('dashboard')} />
+          {userType === 'admin' && (
+            <SidebarLink 
+              icon={<UserPlus />} 
+              text="Inscriptions" 
+              active={activeView === 'registrations'} 
+              onClick={() => handleSidebarClick('registrations')} 
+            />
+          )}
           <SidebarLink icon={<Calendar />} text="Sessions" active={activeView === 'sessions'} onClick={() => handleSidebarClick('sessions')} />
           <SidebarLink icon={<FileText />} text="Resources" active={activeView === 'resources'} onClick={() => handleSidebarClick('resources')} />
           <SidebarLink icon={<Bell />} text="Notifications" active={activeView === 'notifications'} onClick={() => handleSidebarClick('notifications')} />
@@ -60,13 +69,14 @@ function App({ userType, setUserType }) {
             {userType === 'teacher' && <TeacherDashboard />}
             {userType === 'student' || userType === 'eleve' ? <StudentDashboard /> : null}
             {!['admin', 'teacher', 'student', 'eleve'].includes(userType) && (
-  <div>
-    <h1 className="text-2xl font-bold text-red-600">Error: Invalid user type ({userType})</h1>
-  </div>
-)}
-
+              <div>
+                <h1 className="text-2xl font-bold text-red-600">Error: Invalid user type ({userType})</h1>
+              </div>
+            )}
           </>
         )}
+        
+        {activeView === 'registrations' && userType === 'admin' && <RegistrationsPage />}
         {activeView === 'sessions' && <Sessions />}
         {activeView === 'resources' && <Resources />}
         {activeView === 'notifications' && <Notifications />}

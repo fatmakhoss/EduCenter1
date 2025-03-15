@@ -1,7 +1,64 @@
-import React from 'react';
-import { Users, BookOpen, Video, BarChart } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Users, BookOpen, Video, BarChart, UserPlus, DollarSign, Book, ChevronRight } from 'lucide-react';
 
 function AdminDashboard() {
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Récupérer les inscriptions depuis l'API
+    const fetchRegistrations = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:8000/api/admin/registrations', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erreur lors de la récupération des inscriptions');
+        }
+        
+        const data = await response.json();
+        setRegistrations(data.registrations);
+      } catch (err) {
+        console.error('Erreur:', err);
+        setError('Impossible de charger les inscriptions');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRegistrations();
+  }, []);
+
+  const handleStatusChange = async (id, status) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/admin/registrations/${id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la mise à jour du statut');
+      }
+
+      // Mettre à jour l'état local après succès
+      setRegistrations(registrations.map(reg => 
+        reg.id === id ? { ...reg, status } : reg
+      ));
+    } catch (err) {
+      console.error('Erreur:', err);
+      alert('Erreur lors de la mise à jour du statut');
+    }
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
@@ -35,25 +92,77 @@ function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Registrations</h2>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <Users className="h-5 w-5 text-indigo-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Student Name {i}</p>
-                    <p className="text-sm text-gray-500">French - Beginner</p>
-                  </div>
-                </div>
-                <button className="px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-md">
-                  Approve
-                </button>
-              </div>
-            ))}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Recent Registrations</h2>
+            <a href="#" onClick={() => {
+              const appComponent = document.querySelector('#root').__reactFiber$;
+              let fiber = appComponent;
+              
+              // Traverse the fiber tree to find the App component instance
+              while (fiber) {
+                if (fiber.stateNode && typeof fiber.stateNode.handleSidebarClick === 'function') {
+                  fiber.stateNode.handleSidebarClick('registrations');
+                  break;
+                }
+                fiber = fiber.return;
+              }
+            }} className="text-sm text-indigo-600 hover:underline flex items-center">
+              View all <ChevronRight size={16} />
+            </a>
           </div>
+          
+          {loading ? (
+            <div className="flex justify-center p-4">
+              <p>Chargement des inscriptions...</p>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 p-4 text-center">
+              {error}
+            </div>
+          ) : registrations.length === 0 ? (
+            <div className="text-gray-500 p-4 text-center">
+              Aucune inscription à afficher
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {registrations.slice(0, 5).map((registration) => (
+                <div key={registration.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <Users className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{registration.full_name}</p>
+                      <p className="text-sm text-gray-500">{registration.course} - {registration.level}</p>
+                      <p className="text-xs text-gray-400">{new Date(registration.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  {registration.status === 'pending' ? (
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleStatusChange(registration.id, 'approved')}
+                        className="px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-md">
+                        Approuver
+                      </button>
+                      <button 
+                        onClick={() => handleStatusChange(registration.id, 'rejected')}
+                        className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">
+                        Rejeter
+                      </button>
+                    </div>
+                  ) : (
+                    <span className={`px-3 py-1 text-xs rounded-full ${
+                      registration.status === 'approved' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {registration.status === 'approved' ? 'Approuvé' : 'Rejeté'}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
