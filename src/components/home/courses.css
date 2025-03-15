@@ -209,3 +209,37 @@ input:focus, select:focus {
     border-radius: 0 6px 6px 0;
     border-left: none;
 }
+
+/* Messages d'erreur et de succès */
+.error-message {
+    background-color: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #dc2626;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.success-message {
+    background-color: #dcfce7;
+    border: 1px solid #22c55e;
+    color: #16a34a;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+/* États désactivés */
+.btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+input:disabled,
+select:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+}
