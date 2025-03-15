@@ -13,15 +13,20 @@ function Login({ onLogin }) {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:8000/api/login', {
+      const credentials = { email, password };
+      console.log('Tentative de connexion avec:', credentials);
+      
+      const response = await fetch('http://localhost:8001/api/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(credentials)
       });
       
       const data = await response.json();
+      console.log('Réponse du serveur:', data);
       
       if (!response.ok) {
         throw new Error(data.message || 'Erreur de connexion');
@@ -32,10 +37,12 @@ function Login({ onLogin }) {
       localStorage.setItem('role', data.role);
       
       // Déterminer le type d'utilisateur basé sur le rôle
+      const role = data.role.toLowerCase();
       let userType = 'student';
-      if (data.role === 'admin') userType = 'admin';
-      else if (data.role === 'enseignant') userType = 'teacher';
+      if (role === 'admin') userType = 'admin';
+      else if (role === 'enseignant') userType = 'teacher';
       
+      console.log('Type d\'utilisateur déterminé:', userType);
       onLogin(userType);
     } catch (err) {
       console.error('Erreur lors de la connexion:', err);

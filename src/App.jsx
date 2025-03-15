@@ -18,20 +18,28 @@ function App({ userType, setUserType }) {
   // Vérifier l'authentification au chargement de la page
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const storedUserType = localStorage.getItem('role');
+    const storedRole = localStorage.getItem('role');
     
-    if (token) {
-      // Convertir le rôle en type d'utilisateur
+    console.log('Token in localStorage:', token);
+    console.log('Role in localStorage:', storedRole);
+    console.log('Current userType prop:', userType);
+    
+    if (token && !userType) {
+      // Convertir le rôle en type d'utilisateur si pas déjà défini par les props
       let type = 'student';
-      if (storedUserType === 'admin') type = 'admin';
-      else if (storedUserType === 'enseignant') type = 'teacher';
+      if (storedRole && storedRole.toLowerCase() === 'admin') type = 'admin';
+      else if (storedRole && storedRole.toLowerCase() === 'enseignant') type = 'teacher';
       
+      console.log('Setting userType to:', type);
       setUserType(type);
+      setIsLoggedIn(true);
+    } else if (token) {
+      // Token présent et userType déjà défini par les props
       setIsLoggedIn(true);
     }
     
     setIsLoading(false);
-  }, [setUserType]);
+  }, [setUserType, userType]);
 
   const handleLogin = (type) => {
     setUserType(type);
@@ -91,10 +99,23 @@ function App({ userType, setUserType }) {
       <main className="flex-1 overflow-y-auto p-4">
         {activeView === 'dashboard' && (
           <>
-            {userType === 'admin' && <AdminDashboard />}
-            {userType === 'teacher' && <TeacherDashboard />}
-            {userType === 'student' || userType === 'eleve' ? <StudentDashboard /> : null}
-            {!['admin', 'teacher', 'student', 'eleve'].includes(userType) && (
+            {console.log('Rendering dashboard with userType:', userType)}
+            {userType === 'admin' ? (
+              <>
+                {console.log('Rendering AdminDashboard')}
+                <AdminDashboard />
+              </>
+            ) : userType === 'teacher' ? (
+              <>
+                {console.log('Rendering TeacherDashboard')}
+                <TeacherDashboard />
+              </>
+            ) : userType === 'student' || userType === 'eleve' ? (
+              <>
+                {console.log('Rendering StudentDashboard')}
+                <StudentDashboard />
+              </>
+            ) : (
               <div>
                 <h1 className="text-2xl font-bold text-red-600">Error: Invalid user type ({userType})</h1>
               </div>

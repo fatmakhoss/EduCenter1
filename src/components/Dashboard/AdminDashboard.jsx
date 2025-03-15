@@ -11,7 +11,7 @@ function AdminDashboard() {
     const fetchRegistrations = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:8000/api/admin/registrations', {
+        const response = await fetch('http://localhost:8001/api/admin/registrations', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -22,7 +22,30 @@ function AdminDashboard() {
         }
         
         const data = await response.json();
-        setRegistrations(data.registrations);
+        console.log("Données reçues:", data);
+        
+        // Vérifier si data est un tableau ou un objet avec une propriété registrations
+        if (Array.isArray(data)) {
+          setRegistrations(data);
+        } else if (data && typeof data === 'object') {
+          // Si c'est un objet, essayer de récupérer la propriété registrations ou toute autre propriété qui peut être un tableau
+          if (data.registrations && Array.isArray(data.registrations)) {
+            setRegistrations(data.registrations);
+          } else {
+            // Convertir l'objet en tableau si possible
+            const entriesArray = Object.values(data);
+            if (entriesArray.length > 0 && Array.isArray(entriesArray[0])) {
+              setRegistrations(entriesArray[0]);
+            } else {
+              // Fallback: créer un tableau vide pour éviter les erreurs
+              console.warn('Format de données inattendu:', data);
+              setRegistrations([]);
+            }
+          }
+        } else {
+          // Fallback: créer un tableau vide
+          setRegistrations([]);
+        }
       } catch (err) {
         console.error('Erreur:', err);
         setError('Impossible de charger les inscriptions');
@@ -36,7 +59,7 @@ function AdminDashboard() {
 
   const handleStatusChange = async (id, status) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/registrations/${id}/status`, {
+      const response = await fetch(`http://localhost:8001/api/admin/registrations/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

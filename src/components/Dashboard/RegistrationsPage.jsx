@@ -15,7 +15,7 @@ function RegistrationsPage() {
     const fetchRegistrations = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:8000/api/inscription', {
+        const response = await fetch('http://localhost:8001/api/inscription', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -44,7 +44,7 @@ function RegistrationsPage() {
 
   const handleStatusChange = async (id, status) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/inscription/${id}/status`, {
+      const response = await fetch(`http://localhost:8001/api/inscription/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -15,70 +15,115 @@ import AdminDashboard from "./components/Dashboard/AdminDashboard.jsx";
 import TeacherDashboard from "./components/Dashboard/TeacherDashboard.jsx";
 import StudentDashboard from "./components/Dashboard/StudentDashboard.jsx";
 
-// Layout component للتحكم في الـ Header و Footer
+// Layout component pour gérer le Header et Footer
 function Layout({ children }) {
   const location = useLocation();
-  // تحقق من ما إذا كان المستخدم في صفحة الـ Dashboard أو لا
+  // Vérifier si l'utilisateur est sur une page Dashboard
   const isDashboard = location.pathname.startsWith('/dashboard');
-  const showHeaderFooter = !isDashboard; // عرض الـ Header و Footer فقط في الصفحات العامة
+  const showHeaderFooter = !isDashboard; // Afficher Header et Footer uniquement sur les pages publiques
 
   return (
     <>
-      {showHeaderFooter && <Header />} {/* يظهر الـ Header فقط في الصفحات العامة */}
+      {showHeaderFooter && <Header />}
       {children}
-      {showHeaderFooter && <Footer />} {/* يظهر الـ Footer فقط في الصفحات العامة */}
+      {showHeaderFooter && <Footer />}
     </>
   );
 }
 
 function AppWrapper() {
-  const [userType, setUserType] = useState(localStorage.getItem("userType") || null);
+  const [userType, setUserType] = useState(() => {
+    // Récupérer le rôle du localStorage et le convertir en type d'utilisateur
+    const role = localStorage.getItem("role");
+    if (!role) return null;
+    
+    // Convertir le rôle en type d'utilisateur
+    if (role.toLowerCase() === "admin") return "admin";
+    if (role.toLowerCase() === "enseignant") return "teacher";
+    return "student";
+  });
 
-  // حفظ الـ userType في localStorage
+  // Mettre à jour userType quand le rôle change
   useEffect(() => {
-    if (userType) {
-      localStorage.setItem("userType", userType);
-    }
-  }, [userType]);
+    const handleStorageChange = () => {
+      const role = localStorage.getItem("role");
+      if (!role) {
+        setUserType(null);
+        return;
+      }
+      
+      // Convertir le rôle en type d'utilisateur
+      if (role.toLowerCase() === "admin") setUserType("admin");
+      else if (role.toLowerCase() === "enseignant") setUserType("teacher");
+      else setUserType("student");
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("userType");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
     setUserType(null);
   };
 
   return (
     <Router>
       <ScrollToTop />
-      <Layout>
-        <Routes>
-          {/* Routes publiques (الصفحات العامة) */}
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/courses" element={<CourseHome />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/Login" element={<Login onLogin={(userType) => {
-            setUserType(userType);
-            // توجيه مباشر للـ Dashboard بعد الـ Login
-            window.location.href = '/dashboard';
-          }} />} />
-          <Route path="/course/:courseName" element={<CourseLevels />} />
+      <Routes>
+        {/* Routes publiques */}
+        <Route path="/" element={
+          <Layout>
+            <Home />
+          </Layout>
+        } />
+        <Route path="/about" element={
+          <Layout>
+            <About />
+          </Layout>
+        } />
+        <Route path="/courses" element={
+          <Layout>
+            <CourseHome />
+          </Layout>
+        } />
+        <Route path="/contact" element={
+          <Layout>
+            <Contact />
+          </Layout>
+        } />
+        <Route path="/Login" element={
+          <Layout>
+            <Login onLogin={(userType) => {
+              console.log("Login successful, userType received:", userType);
+              setUserType(userType);
+              // Rediriger vers le tableau de bord après connexion
+              window.location.href = '/dashboard';
+            }} />
+          </Layout>
+        } />
+        <Route path="/course/:courseName" element={
+          <Layout>
+            <CourseLevels />
+          </Layout>
+        } />
 
-          {/* Dashboard - Accessible uniquement après connexion */}
-          {userType ? (
-            <Route
-              path="/dashboard/*"
-              element={<App userType={userType} setUserType={setUserType} />}
-            />
-          ) : (
-            <Route path="/dashboard/*" element={<Navigate to="/Login" />} />
-          )}
+        {/* Dashboard - Accessible uniquement après connexion */}
+        {userType ? (
+          <Route
+            path="/dashboard/*"
+            element={<App userType={userType} setUserType={setUserType} />}
+          />
+        ) : (
+          <Route path="/dashboard/*" element={<Navigate to="/Login" />} />
+        )}
 
-          {/* Redirection des pages inconnues */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Layout>
+        {/* Redirection des pages inconnues */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </Router>
   );
 }
 
-export default AppWrapper;
+export default AppWrapper;

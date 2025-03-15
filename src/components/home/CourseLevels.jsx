@@ -46,7 +46,7 @@ const CourseLevels = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8000/api/course-registration', {
+      const response = await fetch('http://localhost:8001/api/course-registration', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
