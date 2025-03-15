@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, Users, Calendar, Bell, FileText, Settings, LogOut, UserPlus } from 'lucide-react';
 import AdminDashboard from './components/Dashboard/AdminDashboard.jsx';
 import TeacherDashboard from './components/Dashboard/TeacherDashboard.jsx';
@@ -11,13 +11,45 @@ import UserSettings from './components/Dashboard/UserSettings.tsx';
 import Notifications from './components/Dashboard/Notifications.tsx';
 
 function App({ userType, setUserType }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Vérifier l'authentification au chargement de la page
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedUserType = localStorage.getItem('role');
+    
+    if (token) {
+      // Convertir le rôle en type d'utilisateur
+      let type = 'student';
+      if (storedUserType === 'admin') type = 'admin';
+      else if (storedUserType === 'enseignant') type = 'teacher';
+      
+      setUserType(type);
+      setIsLoggedIn(true);
+    }
+    
+    setIsLoading(false);
+  }, [setUserType]);
 
   const handleLogin = (type) => {
     setUserType(type);
     setIsLoggedIn(true);
   };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUserType(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+  };
+
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+    </div>;
+  }
 
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
@@ -52,13 +84,7 @@ function App({ userType, setUserType }) {
           <SidebarLink icon={<FileText />} text="Resources" active={activeView === 'resources'} onClick={() => handleSidebarClick('resources')} />
           <SidebarLink icon={<Bell />} text="Notifications" active={activeView === 'notifications'} onClick={() => handleSidebarClick('notifications')} />
           <SidebarLink icon={<Settings />} text="Settings" active={activeView === 'settings'} onClick={() => handleSidebarClick('settings')} />
-          <SidebarLink icon={<LogOut />} text="Logout" onClick={() => {
-            setIsLoggedIn(false);
-            setUserType(null);
-            localStorage.removeItem('userType');
-            localStorage.removeItem('token');
-            window.location.href = '/Login';
-          }} />
+          <SidebarLink icon={<LogOut />} text="Logout" onClick={handleLogout} />
         </nav>
       </aside>
 
@@ -86,7 +112,7 @@ function App({ userType, setUserType }) {
   );
 }
 
-// Composant pour les liens du menu latéral
+// Composant pour les liens du menu latéral
 function SidebarLink({ icon, text, active, onClick }) {
   return (
     // eslint-disable-next-line jsx-a11y/anchor-is-valid
