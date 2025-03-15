@@ -46,12 +46,19 @@ const CourseLevels = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8001/api/course-registration', {
+      const response = await fetch('http://localhost:8001/api/inscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          name: data.fullName,
+          email: data.email,
+          pays: data.country,
+          telephone: data.phone,
+          langue_id: 1, // À adapter selon la langue choisie
+          niveau_id: 1  // À adapter selon le niveau choisi
+        })
       });
 
       if (!response.ok) {
